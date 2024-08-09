@@ -1,0 +1,58 @@
+services:
+  laravel_angular-nginx:
+    build:
+      context: ./nginx/
+    hostname: laravel_angular-nginx
+    container_name: laravel_angular-nginx
+    restart: unless-stopped
+    ports:
+      - 8000:80
+      - 4000:90
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/sites-available
+      - ./www_data/students-app:/usr/share/nginx/html/students-app
+      - ./www_data/students-client:/usr/share/nginx/html/students-client
+
+  laravel_angular-app:
+    build:
+      context: ./php/
+    hostname: laravel_angular-app
+    container_name: laravel_angular-app
+    restart: unless-stopped
+    user: root
+    environment:
+      TZ: "Europe/Moscow"
+    volumes:
+      - ./www_data/students-app:/var/www/html/students-app
+      - ./www_data/students-client:/var/www/html/students-client
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+
+  laravel_angular-db:
+    image: mysql
+    hostname: laravel_angular-db
+    container_name: laravel_angular-db
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Moscow"
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel123
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+  laravel_angular-pma:
+    image: phpmyadmin
+    hostname: laravel_angular-pma
+    container_name: laravel_angular-pma
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Moscow"
+      PMA_HOST: laravel_angular-db
+      UPLOAD_LIMIT: 50M
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
